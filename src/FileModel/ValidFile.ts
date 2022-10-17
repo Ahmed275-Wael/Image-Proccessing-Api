@@ -16,7 +16,7 @@ const validate = async (query: ImageQuery): Promise<null | string> => {
   // Check if requested file is available
   if (!(await File.isImageAvailable(query.filename))) {
     const availableImageNames: string = (
-      await File.getAvailableImageNames()
+      await File.getAvailImgNames()
     ).join(', ');
     return `Please pass a valid filename . Available filenames are: ${availableImageNames}.`;
   }

@@ -43,7 +43,7 @@ describe('Test image processing Api through sharp module', () => {
     // Note: Could also fail because of directory permissions
     it('Writes resized thumb file (existing file, valid size values)', () => __awaiter(void 0, void 0, void 0, function* () {
         yield file_1.default.createThumb({ filename: 'fjord', width: '99', height: '99' });
-        const resizedImagePath = path_1.default.resolve(file_1.default.imagesThumbPath, `fjord-99x99.jpg`);
+        const resizedImagePath = path_1.default.resolve(file_1.default.ThumbPath, `fjord-99x99.jpg`);
         let errorFile = '';
         try {
             yield fs_1.promises.access(resizedImagePath);
@@ -57,7 +57,7 @@ describe('Test image processing Api through sharp module', () => {
 });
 // Erase test file. Test should not run on productive system to avoid cache loss
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
-    const resizedImagePath = path_1.default.resolve(file_1.default.imagesThumbPath, 'fjord-99x99.jpg');
+    const resizedImagePath = path_1.default.resolve(file_1.default.ThumbPath, 'fjord-99x99.jpg');
     try {
         yield fs_1.promises.access(resizedImagePath);
         fs_1.promises.unlink(resizedImagePath);
