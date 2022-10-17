@@ -20,7 +20,7 @@ const file_1 = __importDefault(require("./file"));
 const validate = (query) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if requested file is available
     if (!(yield file_1.default.isImageAvailable(query.filename))) {
-        const availableImageNames = (yield file_1.default.getAvailableImageNames()).join(', ');
+        const availableImageNames = (yield file_1.default.getAvailImgNames()).join(', ');
         return `Please pass a valid filename . Available filenames are: ${availableImageNames}.`;
     }
     if (!query.width && !query.height) {

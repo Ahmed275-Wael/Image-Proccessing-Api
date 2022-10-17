@@ -56,10 +56,10 @@ describe('Test Endpoints', (): void => {
   });
 });
 
-// Erase test file. Test should not run on productive system to avoid cache loss
+
 afterAll(async (): Promise<void> => {
   const resizedImagePath: string = path.resolve(
-    File.imagesThumbPath,
+    File.ThumbPath,
     'fjord-199x199.jpg'
   );
 
@@ -67,6 +67,6 @@ afterAll(async (): Promise<void> => {
     await fs.access(resizedImagePath);
     fs.unlink(resizedImagePath);
   } catch {
-    // intentionally left blank
+    
   }
 });
