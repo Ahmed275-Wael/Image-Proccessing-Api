@@ -1,6 +1,6 @@
 import express from 'express';
 import routes from './routes/index';
-import File from './FileModel/file';
+import File from './utils/FileUtils';
 
  import * as dotenv from 'dotenv'
 

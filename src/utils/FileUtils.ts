@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import Resize_Image from './img-proc'; 
+import Resize_Image from './SharpFactory'; 
 
 
 interface ImgQuery {
@@ -13,8 +13,8 @@ interface ImgQuery {
 export default class ImgFile {
 // Default Paths of Images and thier created thumbnails  "Base Class Variables"
 // Resource : https://www.geeksforgeeks.org/node-js-path-resolve-method/
-  static imagePath  = path.resolve(__dirname, '../../assets/images');
-  static ThumbPath  = path.resolve(__dirname, '../../assets/images/thumbs');
+  static imagePath  = path.resolve(__dirname, './../../images/orgs');
+  static ThumbPath  = path.resolve(__dirname, './../../images/thumbnails');
   
   //=======================================Utilities===========================================//
  
@@ -48,7 +48,7 @@ export default class ImgFile {
     if(img.width && img.height && IsThumb){
       return path.resolve(
         ImgFile.ThumbPath,
-        `${img.filename}-${img.width}x${img.height}.${img.format}`
+        `${img.filename}_${img.width}x${img.height}.${img.format}`
       )}
      return path.resolve(ImgFile.imagePath, 
       `${img.filename}.${img.format}`
@@ -70,7 +70,7 @@ export default class ImgFile {
     if (!img.filename || await ImgFile.isImageAvailable(img.filename) == false) {
       return null;
     }
-    return await ImgFile.getImgFilePath(img,false);
+    return await ImgFile.getImgFilePath(img,true);
   }
   /**
    * @return {string[]} 
@@ -90,7 +90,7 @@ export default class ImgFile {
       return false; 
     }
     const ThumbName: string = 
-      `${img.filename}-${img.width}x${img.height}.${img.format}`;
+      `${img.filename}_${img.width}x${img.height}.${img.format}`;
 
     return (await ImgFile.getAvailDirNames(true)).includes(ThumbName);
   }

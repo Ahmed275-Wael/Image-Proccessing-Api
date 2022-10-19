@@ -1,24 +1,15 @@
 import supertest from 'supertest';
-import app from '../index';
+import app from '../../index';
 import { promises as fs } from 'fs';
 import path from 'path';
-import File from './../FileModel/file';
+import File from '../../utils/FileUtils';
 
 const request: supertest.SuperTest<supertest.Test> = supertest(app);
 
-describe('Test Endpoints', (): void => {
-  describe('endpoint: /', (): void => {
-    it('gets /', async (): Promise<void> => {
-      const response: supertest.Response = await request.get('/');
-
-      expect(response.status).toBe(200);
-    });
-  });
-
   describe('endpoint: /img_router', (): void => {
-    it('gets /img_router?filename=fjord (valid args)', async (): Promise<void> => {
+    it('gets /img_router?filename=fjord (valid format)', async (): Promise<void> => {
       const response: supertest.Response = await request.get(
-        '/img_router?filename=fjord'
+        '/img_router?filename=fjord&format=jpg'
       );
 
       expect(response.status).toBe(200);
@@ -26,7 +17,7 @@ describe('Test Endpoints', (): void => {
 
     it('gets /img_router?filename=fjord&width=199&height=199 (valid args)', async (): Promise<void> => {
       const response: supertest.Response = await request.get(
-        '/img_router?filename=fjord&width=199&height=199'
+        '/img_router?filename=fjord&width=199&height=199&format=jpg'
       );
 
       expect(response.status).toBe(200);
@@ -34,7 +25,7 @@ describe('Test Endpoints', (): void => {
 
     it('gets /img_router?filename=fjord&width=-200&height=200 (invalid args)', async (): Promise<void> => {
       const response: supertest.Response = await request.get(
-        '/img_router?filename=fjord&width=-200&height=200'
+        '/img_router?filename=fjord&width=-200&height=200&format=jpg'
       );
 
       expect(response.status).toBe(200);
@@ -54,7 +45,7 @@ describe('Test Endpoints', (): void => {
       expect(response.status).toBe(404);
     });
   });
-});
+;
 
 
 afterAll(async (): Promise<void> => {

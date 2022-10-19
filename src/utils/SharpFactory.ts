@@ -22,22 +22,26 @@ interface Img_img {
 const Resize_Image = async (img: Img_img): Promise<string | null> => {
   try {
       switch(img.format){
-        case("JPG"):
+        case("jpg"):
         await sharp(img.src).resize(img.width, img.height).toFormat('jpg').toFile(img.dest);
         break;
-        case("PNG"):
+        case("png"):
         await sharp(img.src).resize(img.width, img.height).toFormat('png').toFile(img.dest);
         break;
-        case("GIF"):
+        case("gif"):
         await sharp(img.src).resize(img.width, img.height).toFormat('gif').toFile(img.dest);
         break;
+        case(undefined):
+        await sharp(img.src).resize(img.width, img.height).toFormat('jpg').toFile(img.dest);
+        break;
+
         default:
-          return 'Please choose one of the Following extensions : JPG PNG GIF';
+          return 'Please choose one of the Following extensions : jpg png gif';
       }
-      return "success";
+      return null;
   } catch (error) {
     console.log (error);
-    return null;
+    return "shit";
   }
 };
 
