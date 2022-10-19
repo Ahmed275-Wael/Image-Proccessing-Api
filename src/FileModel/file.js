@@ -15,87 +15,86 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const img_proc_1 = __importDefault(require("./img-proc"));
-class File {
-    /**
-     * @param {ImageQuery} params
-     * @param {string} [params.filename]
-     * @param {string} [params.width]
-     * @param {string} [params.height]
-     * @return {null|string}
-     */
-    static getFilePath(params) {
+class ImgFile {
+    //=======================================Utilities===========================================//
+    // Resource : https://stackoverflow.com/questions/2727167/how-do-you-get-a-list-of-the-names-of-all-ImgFiles-present-in-a-directory-in-node-j?rq=1
+    // Utility Function to list the available ImgFile names in the ~/assets/images 
+    static getAvailDirNames(isThumb) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (params.width && params.height) {
-                return path_1.default.resolve(File.ThumbPath, `${params.filename}-${params.width}x${params.height}.jpg`);
-            }
-            return path_1.default.resolve(File.imagePath, `${params.filename}.jpg`);
-        });
-    }
-    static getImagePath(params) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!params.filename) {
-                return null;
-            }
-            const filePath = yield File.getFilePath(params);
             try {
-                yield fs_1.promises.access(filePath);
-                return filePath;
+                if (!isThumb) {
+                    return ((yield fs_1.promises.readdir(ImgFile.imagePath)).map((filename) => filename.split('.')[0]));
+                }
+                return ((yield fs_1.promises.readdir(ImgFile.ThumbPath)).map((filename) => filename.split('.')[0]));
             }
             catch (_a) {
-                return null;
+                return [];
             }
+        });
+    }
+    /**
+     * @param {ImgQuery} img
+     * @param {string} [img.filename]
+     * @param {string} [img.width]
+     * @param {string} [img.height]
+     * @param {string} [img.format]
+     * @param {boolean} IsThumb
+     * @return {null|string}
+     */
+    // Utility Function to get ImgFilePath (Image or Thumbnail) with the desired format (JPG, PNG, GIF)
+    static getImgFilePath(img, IsThumb) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (img.width && img.height && IsThumb) {
+                return path_1.default.resolve(ImgFile.ThumbPath, `${img.filename}-${img.width}x${img.height}.${img.format}`);
+            }
+            return path_1.default.resolve(ImgFile.imagePath, `${img.filename}.${img.format}`);
         });
     }
     /**
      * @param {string} [filename='']
      * @return {boolean}
      */
-    static getAvailImgNames() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                return (yield fs_1.promises.readdir(File.imagePath)).map((filename) => filename.split('.')[0]);
-            }
-            catch (_a) {
-                return [];
-            }
-        });
-    }
-    static getAvailThmbNames() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                return (yield fs_1.promises.readdir(File.ThumbPath)).map((filename) => filename.split('.')[0]);
-            }
-            catch (_a) {
-                return [];
-            }
-        });
-    }
+    // Utility Function using the getAvailImgNames to track if the image is available or not
     static isImageAvailable(filename = '') {
         return __awaiter(this, void 0, void 0, function* () {
             if (!filename) {
                 return false;
             }
-            return (yield File.getAvailImgNames()).includes(filename);
+            return (yield ImgFile.getAvailDirNames(false)).includes(filename);
+        });
+    }
+    static getImagePath(img) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!img.filename || (yield ImgFile.isImageAvailable(img.filename)) == false) {
+                return null;
+            }
+            return yield ImgFile.getImgFilePath(img, false);
         });
     }
     /**
      * @return {string[]}
      */
     /**
-     * @param {ImageQuery} params
-     * @param {string} [params.filename]
-     * @param {string} [params.width]
-     * @param {string} [params.height]
+     * @param {ImgQuery} img
+     * @param {string} [img.filename]
+     * @param {string} [img.width]
+     * @param {string} [img.format]
+     * @param {string} [img.height]
      * @return {boolean}
      */
-    static isThumbAvailable(params) {
+    static isThumbAvailable(img) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!params.filename || !params.width || !params.height) {
+            if (!(img.filename && img.width && img.height)) {
                 return false;
             }
-            const filePath = path_1.default.resolve(File.ThumbPath, `${params.filename}-${params.width}x${params.height}.jpg`);
+            const ThumbName = `${img.filename}-${img.width}x${img.height}.${img.format}`;
+            return (yield ImgFile.getAvailDirNames(true)).includes(ThumbName);
+        });
+    }
+    static isImgFileCorrupted(img, isThumb) {
+        return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield fs_1.promises.access(filePath);
+                yield fs_1.promises.access(yield ImgFile.getImgFilePath(img, isThumb));
                 return true;
             }
             catch (_a) {
@@ -106,37 +105,41 @@ class File {
     static createThumbPath() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield fs_1.promises.access(File.ThumbPath);
+                yield fs_1.promises.access(ImgFile.ThumbPath);
             }
             catch (_a) {
-                fs_1.promises.mkdir(File.ThumbPath);
+                fs_1.promises.mkdir(ImgFile.ThumbPath);
             }
         });
     }
     /**
-     * @param {ImageQuery} params
-     * @param {string} [params.filename]
-     * @param {string} [params.width]
-     * @param {string} [params.height]
+     * @param {ImgQuery} img
+     * @param {string} [img.filename]
+     * @param {string} [img.format]
+     * @param {string} [img.width]
+     * @param {string} [img.height]
      * @return {null|string}
      */
-    static createThumb(params) {
+    static createThumbnail(img) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!params.filename || !params.width || !params.height) {
+            if (!(img.filename && img.width && img.height && img.format)) {
                 return null;
             }
-            const filePath = path_1.default.resolve(File.imagePath, `${params.filename}.jpg`);
-            const PathThumb = path_1.default.resolve(File.ThumbPath, `${params.filename}-${params.width}x${params.height}.jpg`);
-            console.log(`Creating thumb ${PathThumb}`);
+            const ImgFilePath = yield ImgFile.getImgFilePath(img, false);
+            const PathThumb = yield ImgFile.getImgFilePath(img, true);
+            console.log(`Creating thumbnail ${PathThumb}`);
             return yield (0, img_proc_1.default)({
-                source: filePath,
-                target: PathThumb,
-                width: parseInt(params.width),
-                height: parseInt(params.height)
+                src: ImgFilePath,
+                dest: PathThumb,
+                format: (img.format),
+                width: parseInt(img.width),
+                height: parseInt(img.height)
             });
         });
     }
 }
-exports.default = File;
-File.imagePath = path_1.default.resolve(__dirname, '../../assets/images');
-File.ThumbPath = path_1.default.resolve(__dirname, '../../assets/images/thumbs');
+exports.default = ImgFile;
+// Default Paths of Images and thier created thumbnails  "Base Class Variables"
+// Resource : https://www.geeksforgeeks.org/node-js-path-resolve-method/
+ImgFile.imagePath = path_1.default.resolve(__dirname, '../../assets/images');
+ImgFile.ThumbPath = path_1.default.resolve(__dirname, '../../assets/images/thumbs');

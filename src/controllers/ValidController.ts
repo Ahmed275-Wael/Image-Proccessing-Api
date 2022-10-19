@@ -1,6 +1,6 @@
 import express from 'express';
 import validate from './../FileModel/ValidFile';
-import File from '../FileModel/file';
+import ImgFile from '../FileModel/file';
 
 async function image(request: express.Request,
     response: express.Response): Promise<void> {
@@ -12,18 +12,15 @@ async function image(request: express.Request,
 
     let error: null | string = '';
 
-    if (!(await File.isThumbAvailable(request.query))) {
-        error = await File.createThumb(request.query);
+    if (!(await ImgFile.isThumbAvailable(request.query))) {
+        error = await ImgFile.createThumbnail(request.query);
     }
-
-
     if (error) {
         response.send(error);
         return;
     }
-
-
-    const path: null | string = await File.getImagePath(request.query);
+    
+    const path: null | string = await ImgFile.getImagePath(request.query);
     if (path) {
         response.sendFile(path);
     } else {

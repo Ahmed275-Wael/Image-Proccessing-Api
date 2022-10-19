@@ -50,7 +50,6 @@ describe('Test Endpoints', () => {
         }));
     });
 });
-// Erase test file. Test should not run on productive system to avoid cache loss
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
     const resizedImagePath = path_1.default.resolve(file_1.default.ThumbPath, 'fjord-199x199.jpg');
     try {
@@ -58,6 +57,5 @@ afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
         fs_1.promises.unlink(resizedImagePath);
     }
     catch (_a) {
-        // intentionally left blank
     }
 }));

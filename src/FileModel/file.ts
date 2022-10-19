@@ -1,72 +1,76 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import proc_Image from './img-proc'; 
+import Resize_Image from './img-proc'; 
 
 
 interface ImgQuery {
   filename?: string;
+  format?: string;
   width?: string;
   height?: string;
 }
 
-export default class File {
+export default class ImgFile {
+// Default Paths of Images and thier created thumbnails  "Base Class Variables"
+// Resource : https://www.geeksforgeeks.org/node-js-path-resolve-method/
+  static imagePath  = path.resolve(__dirname, '../../assets/images');
+  static ThumbPath  = path.resolve(__dirname, '../../assets/images/thumbs');
+  
+  //=======================================Utilities===========================================//
+ 
+  // Resource : https://stackoverflow.com/questions/2727167/how-do-you-get-a-list-of-the-names-of-all-ImgFiles-present-in-a-directory-in-node-j?rq=1
+ // Utility Function to list the available ImgFile names in the ~/assets/images 
+  static async getAvailDirNames(isThumb : boolean): Promise<string[]> {
+    try {
+      if (!isThumb) {
+      return ((await fs.readdir(ImgFile.imagePath)).map(
+        (filename: string): string => filename.split ('.')[0]
+      )); 
+    }
+      return ((await fs.readdir(ImgFile.ThumbPath)).map(
+        (filename: string): string => filename.split ('.')[0]
+      ));
+    } catch {
+      return [];
+    }
+  }
   /**
-   * @param {ImgQuery} params 
-   * @param {string} [params.filename] 
-   * @param {string} [params.width] 
-   * @param {string} [params.height] 
+   * @param {ImgQuery} img 
+   * @param {string} [img.filename] 
+   * @param {string} [img.width] 
+   * @param {string} [img.height] 
+   * @param {string} [img.format]
+   * @param {boolean} IsThumb
    * @return {null|string} 
    */
-  static async getFilePath (params :ImgQuery): Promise<string>{
-    if (params.width && params.height){
+  // Utility Function to get ImgFilePath (Image or Thumbnail) with the desired format (JPG, PNG, GIF)
+  static async getImgFilePath (img :ImgQuery, IsThumb :boolean):Promise<string>{
+    if(img.width && img.height && IsThumb){
       return path.resolve(
-        File.ThumbPath,
-        `${params.filename}-${params.width}x${params.height}.jpg`
+        ImgFile.ThumbPath,
+        `${img.filename}-${img.width}x${img.height}.${img.format}`
       )}
-     return path.resolve(File.imagePath, `${params.filename}.jpg`);
+     return path.resolve(ImgFile.imagePath, 
+      `${img.filename}.${img.format}`
+      )}
 
-  }
-
-  static async getImagePath(params: ImgQuery): Promise<null | string> {
-    if (!params.filename) {
-      return null;
-    }
-    const filePath: string =
-     await File.getFilePath(params);
-    try {
-      await fs.access(filePath);
-      return filePath;
-    } catch {
-      return null;
-    }
-  }
   /**
    * @param {string} [filename=''] 
    * @return {boolean} 
    */
-   static async getAvailImgNames(): Promise<string[]> {
-    try {
-      return (await fs.readdir(File.imagePath)).map(
-        (filename: string): string => filename.split('.')[0]
-      ); 
-    } catch {
-      return [];
-    }
-  }
-  static async getAvailThmbNames(): Promise<string[]> {
-    try {
-      return (await fs.readdir(File.ThumbPath)).map(
-        (filename: string): string => filename.split('.')[0]
-      ); 
-    } catch {
-      return [];
-    }
-  }
+  // Utility Function using the getAvailImgNames to track if the image is available or not
   static async isImageAvailable(filename: string = ''): Promise<boolean> {
     if (!filename) {
       return false; 
     }
-    return (await File.getAvailImgNames()).includes(filename);
+    return (await ImgFile.getAvailDirNames(false)).includes(filename);
+  }
+
+  static async getImagePath(img: ImgQuery): Promise<null | string> {
+    if (!img.filename || await ImgFile.isImageAvailable(img.filename) == false) {
+      return null;
+    }
+    return await ImgFile.getImgFilePath(img,false);
   }
   /**
    * @return {string[]} 
@@ -74,64 +78,62 @@ export default class File {
   
 
   /**
-   * @param {ImgQuery} params 
-   * @param {string} [params.filename] 
-   * @param {string} [params.width] 
-   * @param {string} [params.height] 
+   * @param {ImgQuery} img 
+   * @param {string} [img.filename] 
+   * @param {string} [img.width] 
+   * @param {string} [img.format]
+   * @param {string} [img.height] 
    * @return {boolean} 
    */
-  static async isThumbAvailable(params: ImgQuery): Promise<boolean> {
-    if (!params.filename || !params.width || !params.height) {
+  static async isThumbAvailable(img: ImgQuery): Promise<boolean> {
+    if (!(img.filename && img.width && img.height)) {
       return false; 
     }
-    const filePath: string = path.resolve(
-      File.ThumbPath,
-      `${params.filename}-${params.width}x${params.height}.jpg`
-    );
+    const ThumbName: string = 
+      `${img.filename}-${img.width}x${img.height}.${img.format}`;
+
+    return (await ImgFile.getAvailDirNames(true)).includes(ThumbName);
+  }
+
+  static async isImgFileCorrupted (img : ImgQuery, isThumb : boolean) : Promise<boolean> {
     try {
-      await fs.access(filePath);
+      await fs.access(await ImgFile.getImgFilePath(img,isThumb));
       return true;
     } catch {
       return false;
     }
   }
-
  
   static async createThumbPath(): Promise<void> {
     try {
-      await fs.access(File.ThumbPath);
+      await fs.access(ImgFile.ThumbPath);
     } catch {
-      fs.mkdir(File.ThumbPath);
+      fs.mkdir(ImgFile.ThumbPath);
     }
   }
 
   /**
-   * @param {ImgQuery} params 
-   * @param {string} [params.filename] 
-   * @param {string} [params.width] 
-   * @param {string} [params.height] 
+   * @param {ImgQuery} img 
+   * @param {string} [img.filename] 
+   * @param {string} [img.format]
+   * @param {string} [img.width] 
+   * @param {string} [img.height] 
    * @return {null|string} 
    */
-  static async createThumb(params: ImgQuery): Promise<null | string> {
-    if (!params.filename || !params.width || !params.height) {
+  static async createThumbnail(img: ImgQuery): Promise<null | string> {
+    if (!(img.filename && img.width && img.height && img.format)) {
       return null; 
     }
-    const filePath: string = path.resolve(
-      File.imagePath,
-      `${params.filename}.jpg`
-    );
-    const PathThumb: string = path.resolve(
-      File.ThumbPath,
-      `${params.filename}-${params.width}x${params.height}.jpg`
-    );
-    console.log(`Creating thumb ${PathThumb}`);
-    return await proc_Image({
-      source: filePath,
-      target: PathThumb,
-      width: parseInt(params.width),
-      height: parseInt(params.height)
+    const ImgFilePath: string = await ImgFile.getImgFilePath(img,false );
+    const PathThumb: string = await ImgFile.getImgFilePath(img,true);
+    console.log(`Creating thumbnail ${PathThumb}`);
+    return await Resize_Image({
+      src: ImgFilePath,
+      dest: PathThumb,
+      format: (img.format),
+      width: parseInt(img.width),
+      height: parseInt(img.height)
     });
   }
-  static imagePath = path.resolve(__dirname, '../../assets/images');
-  static ThumbPath = path.resolve(__dirname, '../../assets/images/thumbs');
+  
 }

@@ -23,7 +23,7 @@ function image(request, response) {
         }
         let error = '';
         if (!(yield file_1.default.isThumbAvailable(request.query))) {
-            error = yield file_1.default.createThumb(request.query);
+            error = yield file_1.default.createThumbnail(request.query);
         }
         if (error) {
             response.send(error);

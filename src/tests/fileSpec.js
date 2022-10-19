@@ -15,47 +15,45 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const file_1 = __importDefault(require("../FileModel/file"));
-describe('Test image processing Api through sharp module', () => {
-    it('Filename does not exist', () => __awaiter(void 0, void 0, void 0, function* () {
-        const error = yield file_1.default.createThumb({
-            filename: 'loo',
-            width: '100',
-            height: '200'
-        });
-        expect(error).not.toBeNull();
-    }));
-    it('Invalid width value', () => __awaiter(void 0, void 0, void 0, function* () {
-        const error = yield file_1.default.createThumb({
-            filename: 'loo',
-            width: '-100',
-            height: '200'
-        });
-        expect(error).not.toBeNull();
-    }));
-    it('Invalid height value', () => __awaiter(void 0, void 0, void 0, function* () {
-        const error = yield file_1.default.createThumb({
-            filename: 'loo',
-            width: '100',
-            height: '-200'
-        });
-        expect(error).not.toBeNull();
-    }));
-    // Note: Could also fail because of directory permissions
-    it('Writes resized thumb file (existing file, valid size values)', () => __awaiter(void 0, void 0, void 0, function* () {
+describe('Test Api through sharp module', () => {
+    it('Existing file, valid size values', () => __awaiter(void 0, void 0, void 0, function* () {
         yield file_1.default.createThumb({ filename: 'fjord', width: '99', height: '99' });
         const resizedImagePath = path_1.default.resolve(file_1.default.ThumbPath, `fjord-99x99.jpg`);
-        let errorFile = '';
+        let IsFileCreated;
         try {
             yield fs_1.promises.access(resizedImagePath);
-            errorFile = null;
+            IsFileCreated = true;
         }
         catch (_a) {
-            errorFile = 'File was not created';
+            IsFileCreated = false;
         }
-        expect(errorFile).toBeNull();
+        expect(IsFileCreated).toBe(true);
     }));
 });
-// Erase test file. Test should not run on productive system to avoid cache loss
+it('Filename does not exist', () => __awaiter(void 0, void 0, void 0, function* () {
+    const error = yield file_1.default.createThumb({
+        filename: 'loo',
+        width: '100',
+        height: '200'
+    });
+    expect(error).not.toBeNull();
+}));
+it('Invalid width value', () => __awaiter(void 0, void 0, void 0, function* () {
+    const error = yield file_1.default.createThumb({
+        filename: 'fjord',
+        width: '-100',
+        height: '200'
+    });
+    expect(error).not.toBeNull();
+}));
+it('Invalid height value', () => __awaiter(void 0, void 0, void 0, function* () {
+    const error = yield file_1.default.createThumb({
+        filename: 'fjord',
+        width: '100',
+        height: '-200'
+    });
+    expect(error).not.toBeNull();
+}));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
     const resizedImagePath = path_1.default.resolve(file_1.default.ThumbPath, 'fjord-99x99.jpg');
     try {
@@ -63,6 +61,5 @@ afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
         fs_1.promises.unlink(resizedImagePath);
     }
     catch (_a) {
-        // intentionally left blank
     }
 }));
